@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   background: var(--dxc-purple);
-  padding: 32px;
+  padding: 24px;
   box-sizing: border-box;
   font-family:
     "Segoe UI",
@@ -27,9 +27,10 @@
 /* ===== Carte blanche en deux colonnes ===== */
 .auth-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.8fr 1.2fr;
   width: 100%;
   max-width: 1100px;
+  max-height: calc(100vh - 48px); /* ne dépasse jamais la hauteur de l'écran */
   background: #fff;
   border-radius: 16px;
   overflow: hidden;
@@ -39,20 +40,25 @@
 /* Colonne image */
 .auth-visual {
   background: #eceaf0;
+  min-width: 0; /* autorise la colonne à rétrécir (sinon l'image déborde) */
 }
 .auth-visual img {
   width: 100%;
   height: 100%;
+  max-width: 100%;
   object-fit: cover;
+  object-position: bottom; /* rogne par le haut, garde le bas de l'image */
   display: block;
 }
 
 /* Colonne formulaire */
 .auth-form {
   position: relative;
-  padding: 48px 56px;
+  min-width: 0; /* évite que le contenu force un débordement horizontal */
+  padding: 32px 48px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* si jamais ça ne tient pas, le formulaire scrolle (pas la page) */
 }
 
 /* Horloge en haut à droite */
@@ -73,8 +79,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 24px;
-  margin-bottom: 28px;
+  margin-top: 16px;
+  margin-bottom: 32px;
 }
 .auth-logo {
   height: 36px;
@@ -90,12 +96,12 @@
   font-size: 28px;
   font-weight: 500;
   color: var(--text-dark);
-  margin: 0 0 28px;
+  margin: 0 0 20px;
 }
 
 /* ===== Champs (libellé SOUS le champ, à gauche, en violet) ===== */
 .field {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 .field input {
   width: 100%;
@@ -138,7 +144,7 @@
   gap: 8px;
   font-size: 15px;
   color: var(--text-dark);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .checkbox input {
   width: 16px;
@@ -151,14 +157,14 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 .btn-primary {
   background: var(--dxc-purple);
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 14px 32px;
+  padding: 11px 30px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -183,7 +189,7 @@
 .auth-help {
   font-size: 15px;
   color: var(--text-dark);
-  margin: 0 0 18px;
+  margin: 0 0 12px;
 }
 .auth-help a {
   color: var(--link);
@@ -352,4 +358,40 @@
 }
 .btn-close:hover {
   background: #bb2d3b;
+}
+
+/* Séparateur page admin */
+.admin-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
+
+/* page admin boutton */
+.admin-badge {
+  display: inline-block;
+  background: var(--dxc-purple);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+/* Bouton admin (violet au lieu de bleu) */
+.btn-admin {
+  background: var(--dxc-purple);
+}
+.btn-admin:hover {
+  background: var(--dxc-purple-dark);
+}
+
+/* Message d'erreur dans la modal (mots de passe différents) */
+.modal-error {
+  color: #dc3545;
+  font-size: 14px;
+  margin: -6px 0 14px;
 }

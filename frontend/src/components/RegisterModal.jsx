@@ -6,7 +6,10 @@ export default function RegisterModal({ isOpen, onClose }) {
     lastName: "",
     email: "",
     id: "",
+    password: "",
+    confirm: "",
   });
+  const [error, setError] = useState("");
 
   // Fermer avec la touche Échap
   useEffect(() => {
@@ -23,14 +26,39 @@ export default function RegisterModal({ isOpen, onClose }) {
   };
 
   const handleRegister = async () => {
-    // TODO: brancher sur ton API Node/Express : POST /api/auth/register
-    // await axios.post("/api/auth/register", form);
-    console.log("Register:", form);
-    onClose();
+    if (form.password !== form.confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
+    setError("");
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          id: form.id,
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Registration failed.");
+        return;
+      }
+
+      onClose();
+    } catch {
+      setError("Unable to reach the server. Please try again.");
+    }
   };
 
   return (
-    // Le backdrop grise l'arrière-plan ; clic dessus = fermer
     <div className="modal-backdrop" onClick={onClose}>
       {/* stopPropagation : un clic dans la modal ne la ferme pas */}
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -85,6 +113,32 @@ export default function RegisterModal({ isOpen, onClose }) {
               placeholder="Enter ID"
             />
           </div>
+
+          <div className="modal-field">
+            <label>Password:</label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter password"
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div className="modal-field">
+            <label>Confirm Password:</label>
+            <input
+              type="password"
+              name="confirm"
+              value={form.confirm}
+              onChange={handleChange}
+              placeholder="Confirm password"
+              autoComplete="new-password"
+            />
+          </div>
+
+          {error && <p className="modal-error">{error}</p>}
 
           <button className="btn-register" onClick={handleRegister}>
             Register

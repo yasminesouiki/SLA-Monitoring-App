@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// Affiche la date et l'heure en temps réel : 29-06-2026 12:52:50
+
 export default function Clock() {
   const [now, setNow] = useState(new Date());
 

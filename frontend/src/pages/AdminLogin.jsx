@@ -2,42 +2,49 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Clock from "../components/Clock";
-import RegisterModal from "../components/RegisterModal";
 import "../styles/auth.css";
 
-export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    remember: false,
-  });
-  const [showRegister, setShowRegister] = useState(false);
+export default function AdminLogin() {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
+    setGeneralError("");
 
-    if (!form.email) { setEmailError("Email is required."); return; }
-    if (!form.password) { setPasswordError("Password is required."); return; }
+    if (!form.email) {
+      setEmailError("Email is required.");
+      return;
+    }
+    if (!form.password) {
+      setPasswordError("Password is required.");
+      return;
+    }
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         email: form.email,
         password: form.password,
       });
+
+      const user = res.data.user;
+
+      if (user.role !== "admin") {
+        setGeneralError("Access denied. Admin privileges required.");
+        return;
+      }
+
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("user", JSON.stringify(user));
       navigate("/dashboard");
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed";
@@ -68,7 +75,16 @@ export default function Login() {
             <span className="auth-brand-name">Tunisia Web Portal</span>
           </header>
 
-          <h1 className="auth-title">Sign into your account</h1>
+          <div className="admin-badge">Admin Access</div>
+
+          <div style={{ marginBottom: "15px" }} />
+
+          <h1
+            className="auth-title"
+            style={{ fontWeight: 300, fontSize: "25px" }}
+          >
+            Sign in as Administrator
+          </h1>
 
           <div className="field">
             <input
@@ -78,7 +94,7 @@ export default function Login() {
               onChange={handleChange}
               autoComplete="email"
             />
-            <label>Email address</label>
+            <label>Admin email</label>
             {emailError && <p className="auth-error">{emailError}</p>}
           </div>
 
@@ -94,39 +110,17 @@ export default function Login() {
             {passwordError && <p className="auth-error">{passwordError}</p>}
           </div>
 
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              name="remember"
-              checked={form.remember}
-              onChange={handleChange}
-            />
-            Remember me
-          </label>
+          {generalError && <p className="auth-error">{generalError}</p>}
 
           <div className="auth-actions">
-            <button className="btn-primary" onClick={handleLogin}>
-              Login
+            <button className="btn-primary btn-admin" onClick={handleLogin}>
+              Sign in
             </button>
             <span className="divider">|</span>
-            <Link to="/admin" className="link-strong">
-              Admin Access
+            <Link to="/" className="link-strong">
+              Back to login
             </Link>
           </div>
-
-          <p className="auth-help">
-            Forgot your password? <Link to="/reset">Want to reset</Link>
-          </p>
-
-          <p className="auth-help">
-            Don't have an account?{" "}
-            <button
-              className="link-button"
-              onClick={() => setShowRegister(true)}
-            >
-              Register here
-            </button>
-          </p>
 
           <p className="auth-legal">
             <Link to="/terms">Terms of use.</Link>{" "}
@@ -134,11 +128,7 @@ export default function Login() {
           </p>
         </div>
       </div>
-
-      <RegisterModal
-        isOpen={showRegister}
-        onClose={() => setShowRegister(false)}
-      />
     </div>
   );
 }
+

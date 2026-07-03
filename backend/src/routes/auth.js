@@ -5,17 +5,23 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const verifyToken = require('../middleware/auth');
 
-//register
+// ─── POST /api/auth/register ────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
-  const { first_name, last_name, email, password, role_id } = req.body;
+  const { firstName, lastName, email, id: employee_id, password } = req.body;
 
-  if (!first_name || !last_name || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).json({ message: 'First name, last name, email and password are required' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters' });
   }
 
   try {
-    // Check if email already exists
-    const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+    const [existing] = await db.query(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
     if (existing.length > 0) {
       return res.status(409).json({ message: 'Email already in use' });
     }
@@ -23,18 +29,19 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.query(
-      'INSERT INTO users (first_name, last_name, email, password, role_id) VALUES (?, ?, ?, ?, ?)',
-      [first_name, last_name, email, hashedPassword, role_id || 3]
+      `INSERT INTO users (employee_id, first_name, last_name, email, password, role_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [employee_id || null, firstName, lastName, email, hashedPassword, 3]
     );
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'Account created successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-//login
+// ─── POST /api/auth/login ────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -44,7 +51,10 @@ router.post('/login', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      'SELECT users.*, roles.name AS role FROM users JOIN roles ON users.role_id = roles.id WHERE users.email = ?',
+      `SELECT users.*, roles.name AS role
+       FROM users
+       JOIN roles ON users.role_id = roles.id
+       WHERE users.email = ? AND users.is_active = 1`,
       [email]
     );
 
@@ -53,7 +63,6 @@ router.post('/login', async (req, res) => {
     }
 
     const user = rows[0];
-
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -62,7 +71,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '2h' }
     );
 
     res.json({
@@ -70,6 +79,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user.id,
+        employee_id: user.employee_id,
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
@@ -82,11 +92,14 @@ router.post('/login', async (req, res) => {
   }
 });
 
-//  (protected)
+// ─── GET /api/auth/me  (protégé) ────────────────────────────────────────────
 router.get('/me', verifyToken, async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT users.id, first_name, last_name, email, roles.name AS role FROM users JOIN roles ON users.role_id = roles.id WHERE users.id = ?',
+      `SELECT users.id, employee_id, first_name, last_name, email, roles.name AS role
+       FROM users
+       JOIN roles ON users.role_id = roles.id
+       WHERE users.id = ?`,
       [req.user.id]
     );
 
@@ -101,9 +114,9 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
-//logout
+// ─── POST /api/auth/logout  (protégé) ───────────────────────────────────────
+// JWT est stateless : le client supprime le token de son côté.
 router.post('/logout', verifyToken, (_req, res) => {
-  // JWT est stateless — côté client on supprime le token
   res.json({ message: 'Logged out successfully' });
 });
 
