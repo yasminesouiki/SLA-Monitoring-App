@@ -71,26 +71,28 @@ export default function Login() {
           <h1 className="auth-title">Sign into your account</h1>
 
           <div className="field">
+            <label>Email address</label>
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
               autoComplete="email"
+              placeholder="Email address"
             />
-            <label>Email address</label>
             {emailError && <p className="auth-error">{emailError}</p>}
           </div>
 
           <div className="field">
+            <label>Password</label>
             <input
               type="password"
               name="password"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"
+              placeholder="Password"
             />
-            <label>Password</label>
             {passwordError && <p className="auth-error">{passwordError}</p>}
           </div>
 

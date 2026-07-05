@@ -1,0 +1,172 @@
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import "../styles/dashboard.css";
+
+const IconMenu = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+);
+const IconEdit = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+const IconPerson = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+);
+const IconBriefcase = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+  </svg>
+);
+const IconShield = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+
+export default function AdminProfile() {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const initial = (user.first_name?.[0] || user.email?.[0] || "A").toUpperCase();
+  const fullName = user.first_name && user.last_name
+    ? `${user.first_name} ${user.last_name}`
+    : user.email?.split("@")[0] || "Admin";
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+  return (
+    <div className="dashboard-layout">
+      <Sidebar />
+
+      <div className="dashboard-main">
+        {/* Topbar */}
+        <header className="topbar">
+          <div className="topbar-left">
+            <button className="topbar-menu-btn"><IconMenu /></button>
+            <span className="topbar-title">Profile</span>
+          </div>
+          <div className="topbar-avatar" title="Logout" onClick={handleLogout}>
+            {initial}
+          </div>
+        </header>
+
+        {/* Page content */}
+        <div className="page-content">
+
+          {/* Profile header */}
+          <div className="profile-header-card">
+            <div className="profile-avatar-placeholder">{initial}</div>
+
+            <div className="profile-header-info">
+              <div className="profile-name">{fullName}</div>
+              <div className="profile-email">{user.email}</div>
+              <span className="profile-badge">
+                <IconShield />
+                {user.role || "Administrator"}
+              </span>
+            </div>
+
+            <button className="btn-update">
+              <IconEdit /> Update Profile
+            </button>
+          </div>
+
+          {/* Info cards */}
+          <div className="profile-cards">
+
+            {/* Personal Information */}
+            <div className="info-card">
+              <div className="info-card-title">
+                <IconPerson /> Personal Information
+              </div>
+              <div className="info-grid">
+                <div className="info-field">
+                  <div className="info-field-label">National ID</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Phone</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Address</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Governorate</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Marital Status</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Number of Children</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Role</div>
+                  <div className="info-field-value">{user.role || "Administrator"}</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Language</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Professional Information */}
+            <div className="info-card">
+              <div className="info-card-title">
+                <IconBriefcase /> Professional Information
+              </div>
+              <div className="info-grid">
+                <div className="info-field">
+                  <div className="info-field-label">Title</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Assigned Project</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Diplomas</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Certifications</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field" style={{ gridColumn: "span 2" }}>
+                  <div className="info-field-label">Skills</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">Manager</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+                <div className="info-field">
+                  <div className="info-field-label">HR Manager</div>
+                  <div className="info-field-value empty">Not provided</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -31,25 +31,20 @@ export default function AdminLogin() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("http://localhost:5000/api/auth/admin-login", {
         email: form.email,
         password: form.password,
       });
 
-      const user = res.data.user;
-
-      if (user.role !== "admin") {
-        setGeneralError("Access denied. Admin privileges required.");
-        return;
-      }
-
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/dashboard");
+      // Credentials OK → OTP envoyé → rediriger vers vérification
+      sessionStorage.setItem("admin_email", form.email);
+      navigate("/admin/verify", { state: { sentTo: res.data.sentTo } });
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed";
       if (msg.toLowerCase().includes("email") || err.response?.status === 404) {
         setEmailError("No account found with this email.");
+      } else if (err.response?.status === 403) {
+        setGeneralError("Access denied. Admin privileges required.");
       } else {
         setPasswordError("Incorrect password.");
       }
