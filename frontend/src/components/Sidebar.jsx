@@ -19,6 +19,16 @@ const IconManagement = () => (
     <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
   </svg>
 );
+const IconChart = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+  </svg>
+);
+const IconStar = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+);
 const IconSettings = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3"/>
@@ -40,6 +50,9 @@ export default function Sidebar() {
         <NavLink to="/dashboard" end className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
           <IconDashboard /> Dashboard
         </NavLink>
+        <NavLink to="/dashboard/analytics" className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
+          <IconChart /> SLA Dashboard
+        </NavLink>
 
         <p className="sidebar-section-label" style={{ marginTop: 16 }}>Administration</p>
         <NavLink to="/dashboard/approvals" className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
@@ -47,6 +60,9 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/dashboard/management" className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
           <IconManagement /> Management
+        </NavLink>
+        <NavLink to="/dashboard/rate-user" className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
+          <IconStar /> Rate Users
         </NavLink>
         <NavLink to="/dashboard/settings" className={({ isActive }) => "sidebar-item" + (isActive ? " active" : "")}>
           <IconSettings /> Settings

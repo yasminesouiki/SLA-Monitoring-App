@@ -31,10 +31,13 @@ export default function AdminLogin() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/admin-login", {
-        email: form.email,
-        password: form.password,
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/admin-login",
+        {
+          email: form.email,
+          password: form.password,
+        },
+      );
 
       // Credentials OK → OTP envoyé → rediriger vers vérification
       sessionStorage.setItem("admin_email", form.email);
@@ -126,4 +129,3 @@ export default function AdminLogin() {
     </div>
   );
 }
-

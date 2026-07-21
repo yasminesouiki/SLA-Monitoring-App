@@ -10,6 +10,7 @@ export default function RegisterModal({ isOpen, onClose }) {
     confirm: "",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Fermer avec la touche Échap
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function RegisterModal({ isOpen, onClose }) {
       return;
     }
     setError("");
+    setSuccess("");
 
     try {
       const res = await fetch("http://localhost:5000/api/auth/register", {
@@ -52,7 +54,9 @@ export default function RegisterModal({ isOpen, onClose }) {
         return;
       }
 
-      onClose();
+      setSuccess(data.message || "Account created. Please wait for admin approval.");
+      setForm({ firstName: "", lastName: "", email: "", id: "", password: "", confirm: "" });
+      setTimeout(() => { setSuccess(""); onClose(); }, 3000);
     } catch {
       setError("Unable to reach the server. Please try again.");
     }
@@ -139,8 +143,9 @@ export default function RegisterModal({ isOpen, onClose }) {
           </div>
 
           {error && <p className="modal-error">{error}</p>}
+          {success && <p className="modal-success">{success}</p>}
 
-          <button className="btn-register" onClick={handleRegister}>
+          <button className="btn-register" onClick={handleRegister} disabled={!!success}>
             Register
           </button>
         </div>

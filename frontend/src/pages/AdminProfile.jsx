@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import "../styles/dashboard.css";
 
@@ -33,8 +35,17 @@ const IconShield = () => (
 
 export default function AdminProfile() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const stored = JSON.parse(localStorage.getItem("user") || "{}");
+  const [profile, setProfile] = useState(stored);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios.get("http://localhost:5000/api/auth/profile", {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setProfile(res.data.user)).catch(() => {});
+  }, []);
+
+  const user = profile;
   const initial = (user.first_name?.[0] || user.email?.[0] || "A").toUpperCase();
   const fullName = user.first_name && user.last_name
     ? `${user.first_name} ${user.last_name}`
@@ -78,7 +89,7 @@ export default function AdminProfile() {
               </span>
             </div>
 
-            <button className="btn-update">
+            <button className="btn-update" onClick={() => navigate("/dashboard/settings")}>
               <IconEdit /> Update Profile
             </button>
           </div>
@@ -92,38 +103,23 @@ export default function AdminProfile() {
                 <IconPerson /> Personal Information
               </div>
               <div className="info-grid">
-                <div className="info-field">
-                  <div className="info-field-label">National ID</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Phone</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Address</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Governorate</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Marital Status</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Number of Children</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Role</div>
-                  <div className="info-field-value">{user.role || "Administrator"}</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Language</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
+                {[
+                  { label: "National ID",        val: user.national_id },
+                  { label: "Phone",               val: user.phone },
+                  { label: "Address",             val: user.address },
+                  { label: "Governorate",         val: user.governorate },
+                  { label: "Marital Status",      val: user.marital_status },
+                  { label: "Number of Children",  val: user.children },
+                  { label: "Role",                val: user.role },
+                  { label: "Language",            val: user.language },
+                ].map(({ label, val }) => (
+                  <div className="info-field" key={label}>
+                    <div className="info-field-label">{label}</div>
+                    <div className={"info-field-value" + (!val && val !== 0 ? " empty" : "")}>
+                      {val ?? "Not provided"}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -133,34 +129,23 @@ export default function AdminProfile() {
                 <IconBriefcase /> Professional Information
               </div>
               <div className="info-grid">
-                <div className="info-field">
-                  <div className="info-field-label">Title</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Assigned Project</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Diplomas</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Certifications</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field" style={{ gridColumn: "span 2" }}>
-                  <div className="info-field-label">Skills</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">Manager</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
-                <div className="info-field">
-                  <div className="info-field-label">HR Manager</div>
-                  <div className="info-field-value empty">Not provided</div>
-                </div>
+                {[
+                  { label: "Title",            val: user.title },
+                  { label: "Assigned Project", val: user.assigned_project },
+                  { label: "Diplomas",         val: user.diplomas },
+                  { label: "Certifications",   val: user.certifications },
+                  { label: "Skills",           val: user.skills },
+                  { label: "Language",         val: user.language },
+                  { label: "Manager",          val: user.manager },
+                  { label: "HR Manager",       val: user.hr_manager },
+                ].map(({ label, val }) => (
+                  <div className="info-field" key={label}>
+                    <div className="info-field-label">{label}</div>
+                    <div className={"info-field-value" + (!val ? " empty" : "")}>
+                      {val || "Not provided"}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -39,12 +39,12 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.query(
-      `INSERT INTO users (employee_id, first_name, last_name, email, password, role_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [employee_id || null, firstName, lastName, email, hashedPassword, 3]
+      `INSERT INTO users (employee_id, first_name, last_name, email, password, role_id, approval_status)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+      [employee_id || null, firstName, lastName, email, hashedPassword, 2]
     );
 
-    res.status(201).json({ message: 'Account created successfully' });
+    res.status(201).json({ message: 'Account created successfully. An administrator must approve it before you can log in.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -76,6 +76,13 @@ router.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.approval_status === 'pending') {
+      return res.status(403).json({ message: 'Your account is awaiting admin approval. Please try again later.' });
+    }
+    if (user.approval_status === 'rejected') {
+      return res.status(403).json({ message: 'Your account request has been rejected. Please contact your administrator.' });
     }
 
     const token = jwt.sign(
@@ -127,6 +134,100 @@ router.get('/me', verifyToken, async (req, res) => {
 // ─── POST /api/auth/logout  (protégé) ───────────────────────────────────────
 router.post('/logout', verifyToken, (_req, res) => {
   res.json({ message: 'Logged out successfully' });
+});
+
+// ─── GET /api/auth/profile (protégé) ────────────────────────────────────────
+router.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT u.id, u.employee_id, u.first_name, u.last_name, u.email,
+              r.name AS role,
+              u.national_id, u.phone, u.address, u.governorate,
+              u.marital_status, u.children, u.language,
+              u.title, u.assigned_project, u.diplomas,
+              u.certifications, u.skills, u.manager, u.hr_manager
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.id = ?`,
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── PUT /api/auth/profile/personal (protégé) ───────────────────────────────
+router.put('/profile/personal', verifyToken, async (req, res) => {
+  const { first_name, last_name, national_id, phone, address, governorate, marital_status, children, language } = req.body;
+  try {
+    await db.query(
+      `UPDATE users SET first_name=?, last_name=?, national_id=?, phone=?,
+       address=?, governorate=?, marital_status=?, children=?, language=?
+       WHERE id=?`,
+      [first_name, last_name, national_id, phone, address, governorate, marital_status, children || null, language, req.user.id]
+    );
+    res.json({ message: 'Personal info updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── PUT /api/auth/profile/professional (protégé) ───────────────────────────
+router.put('/profile/professional', verifyToken, async (req, res) => {
+  const { title, assigned_project, diplomas, certifications, skills, language, manager, hr_manager } = req.body;
+  try {
+    await db.query(
+      `UPDATE users SET title=?, assigned_project=?, diplomas=?,
+       certifications=?, skills=?, language=?, manager=?, hr_manager=?
+       WHERE id=?`,
+      [title, assigned_project, diplomas, certifications, skills, language, manager, hr_manager, req.user.id]
+    );
+    res.json({ message: 'Professional info updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── PUT /api/auth/profile/account (protégé) ────────────────────────────────
+router.put('/profile/account', verifyToken, async (req, res) => {
+  const { first_name, last_name } = req.body;
+  try {
+    await db.query(
+      `UPDATE users SET first_name=?, last_name=? WHERE id=?`,
+      [first_name, last_name, req.user.id]
+    );
+    res.json({ message: 'Account updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ─── POST /api/auth/change-password (protégé) ───────────────────────────────
+router.post('/change-password', verifyToken, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both passwords are required' });
+  if (newPassword.length < 6) return res.status(400).json({ message: 'New password must be at least 6 characters' });
+
+  try {
+    const [rows] = await db.query('SELECT password FROM users WHERE id=?', [req.user.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+
+    const match = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!match) return res.status(400).json({ message: 'Current password is incorrect' });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await db.query('UPDATE users SET password=? WHERE id=?', [hashed, req.user.id]);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // ─── POST /api/auth/admin-login ─────────────────────────────────────────────

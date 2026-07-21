@@ -28,7 +28,7 @@ export default function OTPVerification() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       sessionStorage.removeItem("admin_email");
-      navigate("/dashboard");
+      navigate("/dashboard/settings");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid code. Please try again.");
     } finally {

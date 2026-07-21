@@ -6,11 +6,14 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const authRoutes = require('./src/routes/auth');
+const managementRoutes = require('./src/routes/management');
+const ratingsRoutes = require('./src/routes/ratings');
+const dashboardRoutes = require('./src/routes/dashboard');
 
 const app = express();
 
 // ─── Sécurité & logging ──────────────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
 
 // ─── CORS : autorise le front Vite (port 5173) ──────────────────────────────
@@ -31,6 +34,9 @@ app.use('/api/auth', authLimiter);
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/management', managementRoutes);
+app.use('/api/ratings', ratingsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // ─── Health check ────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));

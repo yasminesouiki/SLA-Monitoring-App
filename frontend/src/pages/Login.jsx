@@ -14,6 +14,7 @@ export default function Login() {
   const [showRegister, setShowRegister] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [authError, setAuthError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,6 +28,7 @@ export default function Login() {
   const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
+    setAuthError("");
 
     if (!form.email) { setEmailError("Email is required."); return; }
     if (!form.password) { setPasswordError("Password is required."); return; }
@@ -38,10 +40,12 @@ export default function Login() {
       });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/dashboard");
+      navigate(res.data.user.role === "admin" ? "/dashboard" : "/home");
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed";
-      if (msg.toLowerCase().includes("email") || err.response?.status === 404) {
+      if (err.response?.status === 403) {
+        setAuthError(msg);
+      } else if (msg.toLowerCase().includes("email") || err.response?.status === 404) {
         setEmailError("No account found with this email.");
       } else {
         setPasswordError("Incorrect password.");
@@ -105,6 +109,8 @@ export default function Login() {
             />
             Remember me
           </label>
+
+          {authError && <p className="auth-error">{authError}</p>}
 
           <div className="auth-actions">
             <button className="btn-primary" onClick={handleLogin}>

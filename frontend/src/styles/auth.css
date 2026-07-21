@@ -425,3 +425,9 @@
   font-size: 14px;
   margin: -6px 0 14px;
 }
+.modal-success {
+  color: #16a34a;
+  font-size: 14px;
+  margin: -6px 0 14px;
+  font-weight: 600;
+}
